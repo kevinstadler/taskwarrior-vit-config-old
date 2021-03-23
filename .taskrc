@@ -29,3 +29,86 @@ data.location=~/.task
 #include /usr/local/Cellar/task/2.5.3/share/doc/task/rc/solarized-light-256.theme
 #include /usr/local/Cellar/task/2.5.3/share/doc/task/rc/no-color.theme
 
+# Impact aka Importance
+uda.impact.label=Impact
+uda.impact.type=string
+uda.impact.values=H,,L
+
+# Workload
+uda.workload.label=Workload
+uda.workload.type=string
+uda.workload.values=H,,L
+
+# Enjoyment
+uda.enjoyment.label=Enjoyment
+uda.enjoyment.type=string
+uda.enjoyment.values=H,,L
+
+# Bulletproof Urgency = (Pri(2/4/6/8) + Imp(2/4/6) + Work(1/2/3) + Enjoyment(3/2/1)) / .06
+urgency.uda.priority.L.coefficient=-2
+urgency.uda.priority..coefficient=0
+urgency.uda.priority.H.coefficient=2
+# 'someday' tasks are marked as waiting, so they have -3 deducted by default
+urgency.uda.impact.L.coefficient=-2
+urgency.uda.impact..coefficient=0
+urgency.uda.impact.H.coefficient=2
+
+urgency.uda.workload.L.coefficient=-1
+urgency.uda.workload..coefficient=0
+urgency.uda.workload.H.coefficient=1
+
+urgency.uda.enjoyment.L.coefficient=1
+urgency.uda.enjoyment..coefficient=0
+urgency.uda.enjoyment.H.coefficient=-1
+
+# defaults
+#urgency.due.coefficient=12
+urgency.active.coefficient=10
+
+# irrelevant ones
+urgency.age.coefficient=0
+urgency.project.coefficient=0
+urgency.tags.coefficient=0
+
+report.next.columns=id,start.age,depends,project,due.relative,description,urgency
+report.next.description=Most urgent tasks
+#report.next.filter=status:pending
+report.next.filter=(status:pending and (+OVERDUE or +DUE)) or (+ACTIVE and -idea) or +sprint
+report.next.labels=ID,Active,Deps,Project,Due,Description,Urg
+
+report.project.description=ALL tasks related to a project, ordered by status
+report.project.columns=id,start.age,priority,impact,workload,enjoyment,project,scheduled.countdown,due.relative,until.remaining,description,urgency
+report.project.labels=ID,Active,P,I,W,E,Project,S,Due,Until,Description,Urg
+report.project.filter=-PARENT
+report.project.sort=status-,urgency-,project+
+
+report.sprint.description=Current sprints
+report.sprint.columns=id,start.age,priority,impact,workload,enjoyment,project,scheduled.countdown,due.relative,until.remaining,description,urgency
+report.sprint.filter=status:pending
+report.sprint.labels=ID,Active,P,I,W,E,Project,S,Due,Until,Description,Urg
+report.sprint.sort=project+/,status-,urgency-
+
+report.ideas.description=All ideas
+report.ideas.columns=id,status,start.age,priority,impact,workload,enjoyment,project,description
+report.ideas.filter=+idea
+report.ideas.labels=ID,status,Active,P,I,W,E,Project,Description
+report.ideas.sort=status-,active,added-
+
+color.uda.priority.H=color9
+color.uda.priority.L=rgb014
+color.uda.impact.H=green
+color.uda.impact.L=gray8
+color.uda.workload.H=rgb203
+color.uda.workload.L=rgb033
+color.uda.enjoyment.H=green
+color.uda.enjoyment.L=rgb510
+
+color.active=black on green
+# from least to most urgent
+color.due=black on yellow
+color.due.today=black on rgb520
+color.overdue=black on rgb500
+
+color.blocked=white on color8
+color.blocking=bold red on black
+color.completed=green
