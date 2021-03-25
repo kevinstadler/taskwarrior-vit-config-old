@@ -63,7 +63,9 @@ urgency.uda.enjoyment.H.coefficient=-1
 
 # defaults
 #urgency.due.coefficient=12
-urgency.active.coefficient=10
+#urgency.active.coefficient=0 # consider 0
+urgency.blocking.coefficient=5
+urgency.blocked.coefficient=-5
 
 # irrelevant ones
 urgency.age.coefficient=0
@@ -73,20 +75,21 @@ urgency.tags.coefficient=0
 report.next.columns=id,start.age,depends,project,due.relative,description,urgency
 report.next.description=Most urgent tasks
 #report.next.filter=status:pending
-report.next.filter=(status:pending and (+OVERDUE or +DUE)) or (+ACTIVE and -idea) or +sprint
+report.next.filter=(status:pending and (+OVERDUE or +DUE)) or (+SCHEDULED and +READY) or (+ACTIVE and -idea)
 report.next.labels=ID,Active,Deps,Project,Due,Description,Urg
+report.next.sort=start,urgency-,tags-
 
 report.project.description=ALL tasks related to a project, ordered by status
-report.project.columns=id,start.age,priority,impact,workload,enjoyment,project,scheduled.countdown,due.relative,until.remaining,description,urgency
-report.project.labels=ID,Active,P,I,W,E,Project,S,Due,Until,Description,Urg
+report.project.columns=id,start.age,priority,impact,workload,enjoyment,project,due.relative,until.remaining,description,urgency,scheduled.countdown
+report.project.labels=ID,Active,P,I,W,E,Project,Due,Until,Description,Urg,Scheduled
 report.project.filter=-PARENT
-report.project.sort=status-,urgency-,project+
+report.project.sort=status-,project,scheduled-,tags-,urgency-
 
 report.sprint.description=Current sprints
 report.sprint.columns=id,start.age,priority,impact,workload,enjoyment,project,scheduled.countdown,due.relative,until.remaining,description,urgency
 report.sprint.filter=status:pending
 report.sprint.labels=ID,Active,P,I,W,E,Project,S,Due,Until,Description,Urg
-report.sprint.sort=project+/,status-,urgency-
+report.sprint.sort=project,scheduled-,tags-,urgency-
 
 report.ideas.description=All ideas
 report.ideas.columns=id,status,start.age,priority,impact,workload,enjoyment,project,description
@@ -112,3 +115,7 @@ color.overdue=black on rgb500
 color.blocked=white on color8
 color.blocking=bold red on black
 color.completed=green
+
+# show tasks due within X days (default 7)
+#due=4
+bulk=5

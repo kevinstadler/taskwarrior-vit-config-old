@@ -7,13 +7,14 @@ I use `vit`/`task` for long-term tracking of ideas which turn into projects/goal
 * idea / project / phase / task workflow
   * idea -> project/goal
     * [X] undeveloped ideas are tasks with an `+idea` tag. they don't need to be specific, measurable goals
-    * [ ] how will I add annotations to an idea to turn it into a concrete project/goal?
+    * [ ] how will I add annotations to an idea to turn it into a concrete project/goal? -- look at onenote
     * [X] dedicated `ideas` report shows ideas/projects in all states, with their annotations
   * project/goal -> phase/sprint
-    * [X] `sprint` report for looking at all *pending* tasks of a specific project (with clear dependencies?)
-    * [X] `project` report for looking at *all* tasks of a project, including waiting ('someday') tasks AND completed tasks at bottom!
-    * [X] use `wait:someday` vs no wait attribute to distinguish next-sprint vs. non-sprint tasks within a project
-  	* [ ] find a way to apply `+sprint` to all next-sprint (i.e. non-waiting) tasks in the current project view
+    * [X] `sprint` report for looking at all incomplete tasks that are marked for the next `+sprint` of a of a project
+    * [X] `project` report for looking at *all* tasks of a project, including `someday`-scheduled/waiting tasks AND completed tasks at bottom!
+    * [X] use `scheduled:someday` vs no wait attribute to distinguish next-sprint vs. non-sprint tasks within a project
+    * [X] apply `+sprint` to all next-sprint (i.e. non-waiting) tasks in the current project view (external `task` call)
+    * [X] apply the same `due:` to all `+sprint` tasks in the current project view (external `task` call)
 * daily/urgent tasks in the `next` report
   * urgency/priority calculation
     * [Bulletproof tasks](https://www.notion.vip/bulletproof-tasks/) formula calculation is lower value -> higher priority/urgency
@@ -23,13 +24,24 @@ I use `vit`/`task` for long-term tracking of ideas which turn into projects/goal
 * [X] start/stop Clockify time entries for specific tasks from within vit (via `clockify-cli`)
 * review
   * built-in static reports: `task burndown.daily` / `task burndown` / `task timesheet`
-  * [ ] try out `tasksh review`
+  * [ ] try out `tasksh review` -- requires uda?
 
-### resulting task pipeline:
+### resulting task pipeline
 
-1. `project` report which shows all tasks for a project (including completed, at the bottom)
-2. `sprint` report which shows all pending or waiting task for a project (but not completed)
-3. `next` report shows all due, active, `+next` and `+sprint` tasks
+The `next` report shows 3 types of tasks:
+1. first are `ACTIVE` tasks (but `-idea`), for quickly adding stuff and to get over and done with
+  * that's stuff that, for better or worse, I've started doing
+2. `DUE` tasks (anything non-project related that's urgent can be added quickly) -- definition of 'due' depends on `rc.due` (default 7 days)
+  * that's stuff that needs to get done
+3. tasks that are scheduled *and* ready (that includes all possibly not-even-remotely-due sprint-tasks)
+  * that's stuff that I've decided I *want* to get done
+
+The `:project` report shows all tasks for a project (including completed, at the bottom). incomplete tasks can be in one of 3 states:
+1. new tasks are in an unscheduled state, and can be individually turned into 'someday' tasks by pressing `w` or `s` (marking them as `scheduled:someday` -- originally `wait:someday` but this made them a different status so messed up sorting -- really could also consider a uda for this -- not a tag because can't sort by tags)
+2. pressing `x` bulk-marks all non-someday tasks of the project as part of the next `+sprint`
+3. pressing `X` asks and bulk-sets `scheduled:now` *and* a `due:` date for all of the current project's `+sprint` tasks -- only this due date will actually make them show up in the `:next` report!
+
+The `:sprint` report shows all pending or waiting tasks for a project (but not completed ones).
 
 ### keybindings
 
@@ -38,30 +50,45 @@ I use `vit`/`task` for long-term tracking of ideas which turn into projects/goal
 * `a` add task
 * `b` begin task (set `start:now` which makes the task `+ACTIVE`)
 * `d` mark task done (`+COMPLETED`)
+* `D` delete task
+* `m` modify task
 * `u` undo last action
+* `Q` quit
 
 #### custom bindings
 
+bindings with ** at the beginning are sensitive to the currently focussed task's project
+
 ##### report navigation
 
-* `n` to jump to `:next` report
-* `P` to open `:project` report, waiting to fill in project to filter for
-* `I` `:ideas` report (shows active and inactive `+idea` tasks)
+* `q` open `:next` report
+* `I` open `:ideas` report (shows *all* `+idea` tasks)
+* ** `P`, `<Enter>` open `:project` report of the currently focussed task's project
+* ** `S` open `:sprint` report of the currently focussed task's project
+* `p` call `:project project:` and wait for manual entry of project to filter
+* `F` apply extra/custom filter
+* `e`, `o` inspect current task
 
-##### task manipulation
+##### task adding
 
-* `A` add a new *active* task (`start:now `)
-* `W` add a new *weekly* task (`due:eow +weekly `)
 * `i` add new task with tag `+idea`
-* `w` set task `wait:someday`
-* `s` set task `+sprint`
-* `O` adds anotation
+* `W` add a new *weekly* task (`due:eow +weekly `)
+* ** `A` add a new task with the same `project:` as the currently focussed task
 
-##### other
+##### task manipulation/editing
 
+* `w`, `s` set task *waiting*/*someday* (`scheduled:someday`)
+* `n` unset scheduled/waiting date (`scheduled:`)
+* `f` set task `+frog`
+* `O` add anotation
+* `t` set/modify tags
+
+##### sprint/timing pipeline
+
+* ** `x` add `+sprint` to all non-scheduled/waiting tasks of the current project (needs confirmation)
+* ** `X` bulk-set a due date to all `+sprint` tasks of the current project (needs due date and confirmation)
 * `c` starts a Clockify time entry via `clockify-cli in {TASK_DESCRIPTION}`
-* `C` sets `start:now` AND starts a Clockify time entry
-* `S` remove `wait` (set `wait:`)
+* `C`, `B` sets `start:now` AND starts a Clockify time entry
 
 <!-- previous:
 `clockify-cli out`
