@@ -29,6 +29,13 @@ data.location=~/.task
 #include /usr/local/Cellar/task/2.5.3/share/doc/task/rc/solarized-light-256.theme
 #include /usr/local/Cellar/task/2.5.3/share/doc/task/rc/no-color.theme
 
+# Onenote
+uda.notes.type=string
+uda.notes.label=Notes
+
+# Priority
+uda.priority.values=H,,L
+
 # Impact aka Importance
 uda.impact.label=Impact
 uda.impact.type=string
@@ -48,6 +55,7 @@ uda.enjoyment.values=H,,L
 urgency.uda.priority.L.coefficient=-2
 urgency.uda.priority..coefficient=0
 urgency.uda.priority.H.coefficient=2
+
 # 'someday' tasks are marked as waiting, so they have -3 deducted by default
 urgency.uda.impact.L.coefficient=-2
 urgency.uda.impact..coefficient=0
@@ -61,41 +69,64 @@ urgency.uda.enjoyment.L.coefficient=1
 urgency.uda.enjoyment..coefficient=0
 urgency.uda.enjoyment.H.coefficient=-1
 
+# adjustments
+urgency.waiting.coefficient=-5
+urgency.user.tag.OVERDUE.coefficient=5
+
 # defaults
 #urgency.due.coefficient=12
 #urgency.active.coefficient=0 # consider 0
-urgency.blocking.coefficient=5
-urgency.blocked.coefficient=-5
+urgency.blocking.coefficient=2
+urgency.blocked.coefficient=-3
+
+# TODO show 'next' ones slightly higher
+urgency.user.tag.next.coefficient=0
+urgency.scheduled.coefficient=1
 
 # irrelevant ones
 urgency.age.coefficient=0
 urgency.project.coefficient=0
 urgency.tags.coefficient=0
+urgency.annotations.coefficient=0
 
-report.next.columns=id,start.age,depends,project,due.relative,description,urgency
+report.all.columns=uuid.short,start.active,entry.age,priority,project,tags,recur.indicator,description,wait.remaining,scheduled.remaining,due,end.age,until.remaining
+report.all.labels=UUID,A,Age,P,Project,Tags,R,Description,Wait,Sch,Due,Done,Until
+
+report.next.columns=id,start.age,depends,project,due.relative,description,urgency,scheduled.age
 report.next.description=Most urgent tasks
 #report.next.filter=status:pending
-report.next.filter=(status:pending and (+OVERDUE or +DUE)) or (+SCHEDULED and +READY) or (+ACTIVE and -idea)
-report.next.labels=ID,Active,Deps,Project,Due,Description,Urg
+report.next.filter=(status:pending and (+OVERDUE or +DUE or +weekly)) or (+SCHEDULED and +READY) or (+ACTIVE -idea -goal)
+report.next.labels=ID,Active,Deps,Project,Due,Description,Urg,Scheduled
 report.next.sort=start,urgency-,tags-
 
 report.project.description=ALL tasks related to a project, ordered by status
-report.project.columns=id,start.age,priority,impact,workload,enjoyment,project,due.relative,until.remaining,description,urgency,scheduled.countdown
-report.project.labels=ID,Active,P,I,W,E,Project,Due,Until,Description,Urg,Scheduled
+report.project.columns=id,start.age,priority,impact,workload,enjoyment,project,due.relative,depends,description,urgency,end,scheduled.relative,wait.relative
+report.project.labels=ID,Active,P,I,W,E,Project,Due,D,Description,Urg,Completed,Sch,Waiting
 report.project.filter=-PARENT
-report.project.sort=status-,project,scheduled-,tags-,urgency-
-
-report.sprint.description=Current sprints
-report.sprint.columns=id,start.age,priority,impact,workload,enjoyment,project,scheduled.countdown,due.relative,until.remaining,description,urgency
-report.sprint.filter=status:pending
-report.sprint.labels=ID,Active,P,I,W,E,Project,S,Due,Until,Description,Urg
-report.sprint.sort=project,scheduled-,tags-,urgency-
+# 'scheduled' sorting in taskwarrior puts all non-scheduled before or after both future-and-past scheduled, so that's not good
+# TODO file 'vit' big that it can't sort on 'depends':
+#  File "/usr/local/Cellar/vit/2.1.0/libexec/lib/python3.9/site-packages/vit/task_list.py", line 84, in update_data
+#    self.sort()
+#  File "/usr/local/Cellar/vit/2.1.0/libexec/lib/python3.9/site-packages/vit/task_list.py", line 184, in sort
+#    self.tasks = sorted(self.tasks, key=cmp_to_key(comparator), reverse=True)
+#  File "/usr/local/Cellar/vit/2.1.0/libexec/lib/python3.9/site-packages/vit/task_list.py", line 176, in comparator
+#    return -1 if first[column] < second[column] else 1 if first[column] > second[column] else 0
+#TypeError: '<' not supported between instances of 'LazyUUIDTaskSet' and 'set'
+# completed at bottom, then pending before waiting, then active tasks, TODO then blocked to the bottom (see above), then group by project, with idea/goal/next tags first
+report.project.sort=end-,status+/,start+,project+/,tags-,urgency-
 
 report.ideas.description=All ideas
-report.ideas.columns=id,status,start.age,priority,impact,workload,enjoyment,project,description
+report.ideas.columns=id,start.age,priority,impact,workload,enjoyment,project,description
 report.ideas.filter=+idea
-report.ideas.labels=ID,status,Active,P,I,W,E,Project,Description
-report.ideas.sort=status-,active,added-
+report.ideas.labels=ID,Active,P,I,W,E,Project,Description
+report.ideas.sort=status-,start+,added-
+
+report.goals.description=Long term goals
+report.goals.columns=id,start,scheduled,due,description,project
+report.goals.filter=+goal
+report.goals.labels=ID,Active since,Scheduled,Due,Description,Project
+report.goals.sort=status-,scheduled+
+report.goals.dateformat=B Y
 
 color.uda.priority.H=color9
 color.uda.priority.L=rgb014
@@ -112,10 +143,14 @@ color.due=black on yellow
 color.due.today=black on rgb520
 color.overdue=black on rgb500
 
-color.blocked=white on color8
+color.blocked=color8 on black
 color.blocking=bold red on black
 color.completed=green
+color.scheduled=
 
 # show tasks due within X days (default 7)
-#due=4
+#due=8
+#weekstart=monday
 bulk=5
+dateformat=d.m.
+#dateformat.report=Y-M-D H:N
