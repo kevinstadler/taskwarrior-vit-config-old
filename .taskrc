@@ -30,11 +30,22 @@ data.location=~/.task
 #include /usr/local/Cellar/task/2.5.3/share/doc/task/rc/no-color.theme
 
 # Onenote
-uda.notes.type=string
 uda.notes.label=Notes
+uda.notes.type=string
 
-# Priority
-uda.priority.values=H,,L
+# location/type for filtering contexts
+uda.action.type=string
+uda.action.values=coding,communication,documentation,reading,research,writing,
+
+uda.location.type=string
+
+# goal scope
+uda.goal.label=Goal
+uda.goal.type=string
+uda.goal.values=year,quarter,month,
+color.uda.goal.year=bright red
+color.uda.goal.quarter=rgb520
+color.uda.goal.month=cyan
 
 # Impact aka Importance
 uda.impact.label=Impact
@@ -46,38 +57,43 @@ uda.workload.label=Workload
 uda.workload.type=string
 uda.workload.values=H,,L
 
+# Priority
+uda.priority.values=H,,L
+
 # Enjoyment
-uda.enjoyment.label=Enjoyment
-uda.enjoyment.type=string
-uda.enjoyment.values=H,,L
+uda.joy.label=Enjoyment
+uda.joy.type=string
+uda.joy.values=H,,L
 
 # Bulletproof Urgency = (Pri(2/4/6/8) + Imp(2/4/6) + Work(1/2/3) + Enjoyment(3/2/1)) / .06
-urgency.uda.priority.L.coefficient=-2
-urgency.uda.priority..coefficient=0
-urgency.uda.priority.H.coefficient=2
+urgency.uda.impact.L.coefficient=-1.5
+urgency.uda.impact..coefficient=0
+urgency.uda.impact.H.coefficient=1.5
+
+urgency.uda.workload.L.coefficient=-.5
+urgency.uda.workload..coefficient=0
+urgency.uda.workload.H.coefficient=.5
 
 # 'someday' tasks are marked as waiting, so they have -3 deducted by default
-urgency.uda.impact.L.coefficient=-2
-urgency.uda.impact..coefficient=0
-urgency.uda.impact.H.coefficient=2
+urgency.uda.priority.L.coefficient=-1
+urgency.uda.priority..coefficient=0
+urgency.uda.priority.H.coefficient=1
 
-urgency.uda.workload.L.coefficient=-1
-urgency.uda.workload..coefficient=0
-urgency.uda.workload.H.coefficient=1
-
-urgency.uda.enjoyment.L.coefficient=1
-urgency.uda.enjoyment..coefficient=0
-urgency.uda.enjoyment.H.coefficient=-1
-
-# adjustments
-urgency.waiting.coefficient=-5
-urgency.user.tag.OVERDUE.coefficient=5
+# push enjoyable stuff down
+urgency.uda.joy.L.coefficient=.5
+urgency.uda.joy..coefficient=0
+urgency.uda.joy.H.coefficient=-.5
 
 # defaults
 #urgency.due.coefficient=12
-#urgency.active.coefficient=0 # consider 0
+#urgency.active.coefficient=4
 urgency.blocking.coefficient=2
 urgency.blocked.coefficient=-3
+
+# adjustments
+urgency.due.coefficient=10
+urgency.user.tag.OVERDUE.coefficient=5
+urgency.waiting.coefficient=-5
 
 # TODO show 'next' ones slightly higher
 urgency.user.tag.next.coefficient=0
@@ -89,22 +105,26 @@ urgency.project.coefficient=0
 urgency.tags.coefficient=0
 urgency.annotations.coefficient=0
 
-report.all.columns=uuid.short,start.active,entry.age,priority,project,tags,recur.indicator,description,wait.remaining,scheduled.remaining,due,end.age,until.remaining
-report.all.labels=UUID,A,Age,P,Project,Tags,R,Description,Wait,Sch,Due,Done,Until
+report.all.columns=status,uuid.short,start.active,entry.age,priority,project,tags,description,wait.remaining,scheduled,due.remaining,end.age,until.remaining
+report.all.labels=S,UUID,A,Age,P,Project,Tags,Description,Wait,Sch,Due,Done,Until
 
-report.next.columns=id,start.age,depends,project,due.relative,description,urgency,scheduled.age
-report.next.description=Most urgent tasks
-#report.next.filter=status:pending
-report.next.filter=(status:pending and (+OVERDUE or +DUE or +weekly)) or (+SCHEDULED and +READY) or (+ACTIVE -idea -goal)
-report.next.labels=ID,Active,Deps,Project,Due,Description,Urg,Scheduled
-report.next.sort=start,urgency-,tags-
+report.next.description=Urgent (quadrant 1) + scheduled (quadrant 2) tasks
+report.next.filter=(end: +frog) or status:pending (+OVERDUE or +DUE or +weekly or (-idea -goal (+ACTIVE or (+SCHEDULED +READY))))
+report.next.sort=due+,urgency-,tags-
+report.next.columns=id,start.age,impact,workload,priority,joy,depends.indicator,project,due.relative,description,urgency
+#,scheduled.age
+report.next.labels=ID,Active,I,W,P,J,D,Project,Due,Description,Urg
+
+report.master.description=All pending/non-waiting tasks
+report.master.filter=status:pending scheduled: due: -idea
+report.master.sort=start+,urgency-,entry- # ,project+
+report.master.columns=id,impact,workload,priority,joy,depends.indicator,project,due.relative,description,urgency,entry.age
+report.master.labels=ID,I,W,P,J,D,Project,Due,Description,Urg,Age
 
 report.project.description=ALL tasks related to a project, ordered by status
-report.project.columns=id,start.age,priority,impact,workload,enjoyment,project,due.relative,depends,description,urgency,end,scheduled.relative,wait.relative
-report.project.labels=ID,Active,P,I,W,E,Project,Due,D,Description,Urg,Completed,Sch,Waiting
 report.project.filter=-PARENT
 # 'scheduled' sorting in taskwarrior puts all non-scheduled before or after both future-and-past scheduled, so that's not good
-# TODO file 'vit' big that it can't sort on 'depends':
+# TODO file 'vit' bug that it can't sort on 'depends':
 #  File "/usr/local/Cellar/vit/2.1.0/libexec/lib/python3.9/site-packages/vit/task_list.py", line 84, in update_data
 #    self.sort()
 #  File "/usr/local/Cellar/vit/2.1.0/libexec/lib/python3.9/site-packages/vit/task_list.py", line 184, in sort
@@ -112,30 +132,42 @@ report.project.filter=-PARENT
 #  File "/usr/local/Cellar/vit/2.1.0/libexec/lib/python3.9/site-packages/vit/task_list.py", line 176, in comparator
 #    return -1 if first[column] < second[column] else 1 if first[column] > second[column] else 0
 #TypeError: '<' not supported between instances of 'LazyUUIDTaskSet' and 'set'
+
 # completed at bottom, then pending before waiting, then active tasks, TODO then blocked to the bottom (see above), then group by project, with idea/goal/next tags first
-report.project.sort=end-,status+/,start+,project+/,tags-,urgency-
+#report.project.sort=end-,status+/,start+,project+/,tags-,urgency-
+report.project.sort=project+/,end-,status+/,start+,tags-,urgency-
+report.project.columns=id,start.age,impact,workload,priority,joy,project,wait.relative,due.relative,depends,description,urgency,end
+#,scheduled.relative
+report.project.labels=ID,Active,I,W,P,J,Project,Wait,Due,Deps,Description,Urg,Done
 
 report.ideas.description=All ideas
-report.ideas.columns=id,start.age,priority,impact,workload,enjoyment,project,description
 report.ideas.filter=+idea
-report.ideas.labels=ID,Active,P,I,W,E,Project,Description
-report.ideas.sort=status-,start+,added-
+report.ideas.sort=end-,wait-,start,entry-
+report.ideas.columns=id,start.age,priority,impact,workload,joy,project,description,entry,end
+report.ideas.labels=ID,Active,P,I,W,J,Project,Description,Added,Until
 
 report.goals.description=Long term goals
-report.goals.columns=id,start,scheduled,due,description,project
+# filter by the goal tag, actually displayed is the goal uda!
 report.goals.filter=+goal
-report.goals.labels=ID,Active since,Scheduled,Due,Description,Project
-report.goals.sort=status-,scheduled+
+report.goals.sort=status-,scheduled+,goal+
+report.goals.columns=id,goal,start,scheduled,due,description,project
+report.goals.labels=ID,Scope,Active since,Scheduled,Due,Description,Project
 report.goals.dateformat=B Y
 
-color.uda.priority.H=color9
-color.uda.priority.L=rgb014
-color.uda.impact.H=green
+# what you SHOULD do = green (i.e. impact is the most important)
+color.uda.impact.H=bold bright green
 color.uda.impact.L=gray8
-color.uda.workload.H=rgb203
-color.uda.workload.L=rgb033
-color.uda.enjoyment.H=green
-color.uda.enjoyment.L=rgb510
+# how difficult it is to do something = orange vs green
+color.uda.workload.H=bold rgb520
+color.uda.workload.L=bright green
+#color.uda.workload.H=bold rgb203
+#color.uda.workload.L=rgb033
+# subjective things = pink (difficult) vs blueish-turquoise (easy)
+color.uda.priority.H=rgb033
+color.uda.priority.L=rgb403
+# low enjoyment tasks are more urgent (do them if you can handle them) -- so the coloring is counter-intuitive here!
+color.uda.joy.H=rgb033
+color.uda.joy.L=rgb403
 
 color.active=black on green
 # from least to most urgent
@@ -146,11 +178,12 @@ color.overdue=black on rgb500
 color.blocked=color8 on black
 color.blocking=bold red on black
 color.completed=green
+color.deleted=gray10
 color.scheduled=
 
 # show tasks due within X days (default 7)
 #due=8
-#weekstart=monday
-bulk=5
+weekstart=monday
+bulk=8
 dateformat=d.m.
 #dateformat.report=Y-M-D H:N

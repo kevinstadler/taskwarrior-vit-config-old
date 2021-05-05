@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# $1 is the project name, rest is the description
+DESCRIPTION=${@:2}
+
+# TODO parse ${@:2} for tags
+case "$DESCRIPTION" in
+  *"contact"* | *"respond"* | *"reply"* | *"write to "* | *"send "*)
+    TAG="communication"
+  ;;
+  *"push "* | *"implement"* | *"code"*)
+    TAG="programming"
+  ;;
+  *"read"*)
+    TAG="reading"
+  ;;
+  *"document"*)
+    TAG="documentation"
+  ;;
+  *"write"*)
+    TAG="writing"
+  ;;
+  *"journal"* | *"log "* | *"plan"*)
+    TAG="logging/management/planning"
+  ;;
+  *"buy"* | *"order"*)
+    TAG="errands"
+  ;;
+esac
+
+if [ ! -z "$TAG" ]; then
+  echo "Applying --tag $TAG"
+  TAG="--tag $TAG"
+fi
+
+if ! clockify-cli --allow-project-name in $1 "$DESCRIPTION" -n $TAG; then
+  clockify-cli in 605568e87c2e0f6e55cfe535 "$DESCRIPTION" -n
+fi
