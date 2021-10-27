@@ -1,15 +1,65 @@
-## taskwarrior `.taskrc` / vit `.vitrc/config.ini`
+# a taskwarrior / vit / vimwiki pipeline
 
-~~I use `vit`/`task` for long-term tracking of ideas which turn into projects/goals and grow more and more tasks. It's a permanent storage archive that feeds into my paper-based daily bullet journalling which I use to organize my days.~~
+## history
 
-My `vit`/`task` database doubles as [both parts of task/project management](https://medium.com/strong-opinions/daily-planning-the-bulletproof-system-54367a45b422):
-* to-do list
-  * current tasks via the `:next` report -- for just getting things done (this replaces my daily todo list/journal)
-  * collecting, grouping into sprints and then actuating per-project tasks via the `:project` report (this replaces my former project journal)
+* in spring 2021 I started using [taskwarrior]() with [vit](https://github.com/vit-project/vit) as an interactive frontend
+* tried out taskwiki, but I found it to be very slow and it [does not support batch updating of tasks](https://github.com/tools-life/taskwiki/issues/196#issuecomment-634789028)
+* in the end I implemented a [custom script for populating/parsing tasks](bin/taskproject) which I am calling from vit. it populates a vimwiki file with task lists which I can then edit interactively in `vipe`, on exit it parses changes and writes them into the taskwarrior database before returning to vit.
+
+## workflow
+
+My `vit`/`task` database doubles as [both parts of task and project management](https://medium.com/strong-opinions/daily-planning-the-bulletproof-system-54367a45b422): on one hand (more unusally) a *personal dashboard* for long-term tracking of ideas which turn into projects/goals and grow more and more specific tasks, which ends up being my actual *to do list*. It's a permanent storage archive that feeds into my paper-based daily bullet journalling which I use to organize my days. I make use of the following reports:
+
 * personal dashboard
   * `:ideas` report for dumping all sorts of ideas
-  * `:goals` report for strategic and goal-oriented mid- to long-term planning
-    *   [Angel Salinas'](https://medium.com/strong-opinions/planning-ii-your-personal-dashboard-f6a9d7505f62) doesn't work that well for me, gotta look for a more suitable one
+  * `:projects` report for getting an overview of active projects (see below)
+  * *(needs revision: `:goals` report for strategic and goal-oriented mid- to long-term planning
+    * [Angel Salinas'](https://medium.com/strong-opinions/planning-ii-your-personal-dashboard-f6a9d7505f62) doesn't work that well for me, gotta look for a more suitable one*
+* to-do list
+  * current tasks via the `:next` report -- for just getting things done (this replaces my daily todo list/journal)
+  * collecting, grouping into sprints and then actuating per-project tasks via [my custom `taskproject` python script](bin/taskproject) ~~the `:project` report (this replaces my former project journal)~~
+
+### idea / project / phase / task workflow
+
+* idea -> project/goal
+  * [X] undeveloped ideas are tasks with an `+idea` tag. they don't need to be specific or measurable like goals. I add them as I go along.
+  * [X] dedicated `:ideas` report shows ideas/projects in all states, with their annotations
+  * [X] `+idea` tasks are hidden from `:next` even if they're `+ACTIVE`
+  * [ ] ~~how will I add annotations to an idea to turn it into a concrete project/goal? -- look at onenote~~
+  * [X] once I start working on an idea it will be tagged as `+project`, assigned a `project:` which all consequent goals/tasks will be grouped under as well, and (usually) made `+ACTIVE` by setting a `start:` date
+
+In a previous paper-based project journal I kept track (and a check on the number) of currently active projects by grouping them in different stages. The different stages (and their corresponding taskwarrior states) are:
+
+* ongoing (`+ACTIVE`)
+* blocked (`+blocked`)
+* filed (`+WAITING`)
+* completed (`+COMPLETED`)
+* scrapped (`+DELETED`)
+
+### goals
+
+* [X] specific, measureable long-term goals are tasks with a `+goal` tag. they should certainly have a `scheduled` (start) date, and optionally also a `due` date (if there is an actual deadline)
+* [X] the `:goals` report shows all current and future goals sorted by their `scheduled` dates
+* completed/deleted goals at the bottom
+* ~~project/goal -> phase/sprint
+* [X] the `:project` report lists *all* tasks of a project: `+idea`/`+goal`/`+next` first, then `+ACTIVE`, then all pending tasks by urgency, then `+WAITING` ('someday') tasks followed by completed/deleted tasks (sorted by their `end`) at bottom!
+* [X] `<Space>` applies the `+next` tag to a task, marking them for the next sprint
+* [X] `s` applies `waiting:someday` to a task, stashing it away (pushing it to the bottom)
+* [X] `X` applies `scheduled:now` and the same `due:` to all `+next` tasks in the current project view
+* [X] `:sprint` report for looking at all incomplete tasks that are marked for the next `+sprint` of a of a project~~
+
+### first attempt: doing the project pipeline within vit itself
+
+<s>tasks with real deadlines have a `due:` date so that's easy, but what about projects I work on for myself.
+
+* adding a `+next` tag queues a task for the next sprint of that project
+* to start a sprint, I apply `scheduled:now` to all `+next +PENDING` tasks of a project
+  * being `+SCHEDULED +READY` makes those tasks show up on my `next` report, but without a due date
+  * TODO I should set a deadline as well?
+
+
+## taskwarrior `.taskrc` / vit `.vitrc/config.ini`
+
 
 ### visualizing task importance
 
@@ -70,25 +120,6 @@ urgency.uda.enjoyment.H.coefficient=-1
 urgency.waiting.coefficient=-5
 ```
 
-### feature list
-
-* idea / project / phase / task workflow
-  * idea -> project/goal
-    * [X] undeveloped ideas are tasks with an `+idea` tag. they don't need to be specific or measurable like goals
-    * [X] dedicated `:ideas` report shows ideas/projects in all states, with their annotations
-    * [X] `+idea` tasks are hidden from `:next` even if they're `+ACTIVE`
-    * [ ] how will I add annotations to an idea to turn it into a concrete project/goal? -- look at onenote
-    * [X] once I start working on an idea it will be set `+ACTIVE` and assigned a `project:`, which all consequent goals/tasks will be grouped under as well
-  * goals
-    * [X] specific, measureable long-term goals are tasks with a `+goal` tag. they should certainly have a `scheduled` (start) date, and optionally also a `due` date (if there is an actual deadline)
-    * [X] the `:goals` report shows all current and future goals sorted by their `scheduled` dates
-      * completed/deleted goals at the bottom
-  * project/goal -> phase/sprint
-    * [X] the `:project` report lists *all* tasks of a project: `+idea`/`+goal`/`+next` first, then `+ACTIVE`, then all pending tasks by urgency, then `+WAITING` ('someday') tasks followed by completed/deleted tasks (sorted by their `end`) at bottom!
-    * [X] `<Space>` applies the `+next` tag to a task, marking them for the next sprint
-    * [X] `s` applies `waiting:someday` to a task, stashing it away (pushing it to the bottom)
-    * [X] `X` applies `scheduled:now` and the same `due:` to all `+next` tasks in the current project view
-    * ~~[X] `:sprint` report for looking at all incomplete tasks that are marked for the next `+sprint` of a of a project~~
 
 * [X] start/stop Clockify time entries for specific tasks from within vit (via `clockify-cli`)
 * review
@@ -165,6 +196,8 @@ bindings with ** at the beginning are sensitive to the currently focussed task's
 <!-- previous:
 `clockify-cli out`
 -->
+
+</s>
 
 ### taskwarrior virtual tag logic
 
