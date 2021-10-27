@@ -105,15 +105,22 @@ urgency.project.coefficient=0
 urgency.tags.coefficient=0
 urgency.annotations.coefficient=0
 
+report.completed.sort=end-
 report.all.columns=status,uuid.short,start.active,entry.age,priority,project,tags,description,wait.remaining,scheduled,due.remaining,end.age,until.remaining
 report.all.labels=S,UUID,A,Age,P,Project,Tags,Description,Wait,Sch,Due,Done,Until
 
 report.next.description=Urgent (quadrant 1) + scheduled (quadrant 2) tasks
-report.next.filter=(end: +frog) or status:pending (+OVERDUE or +DUE or +weekly or (-idea -goal (+ACTIVE or (+SCHEDULED +READY))))
-report.next.sort=due+,urgency-,tags-
-report.next.columns=id,start.age,impact,workload,priority,joy,depends.indicator,project,due.relative,description,urgency
+report.next.filter=status:pending (+frog or +OVERDUE or (+DUE +READY) or +weekly or (-idea -goal (+ACTIVE or (+SCHEDULED +READY))))
+report.next.sort=scheduled+,due+,urgency-,tags-
+report.next.columns=id,start.age,impact,workload,priority,joy,depends,project,scheduled.relative,due.relative,description.count,urgency
+report.next.labels=ID,Active,I,W,P,J,D,Project,Sched,Due,Description,Urg
+
+#report.next.description=Quadrant 2 (important) tasks
+#report.next.filter=status:pending (+next or +OVERDUE or (+DUE +READY) or +weekly or (-idea -goal (+ACTIVE or (+SCHEDULED +READY))))
+#report.next.sort=scheduled+,due+,urgency-,tags-
+#report.next.columns=id,start.age,impact,workload,priority,joy,depends,project,scheduled.relative,due.relative,description.count,urgency
 #,scheduled.age
-report.next.labels=ID,Active,I,W,P,J,D,Project,Due,Description,Urg
+#report.next.labels=ID,Active,I,W,P,J,D,Project,Sched,Due,Description,Urg
 
 report.master.description=All pending/non-waiting tasks
 report.master.filter=status:pending scheduled: due: -idea
@@ -135,16 +142,27 @@ report.project.filter=-PARENT
 
 # completed at bottom, then pending before waiting, then active tasks, TODO then blocked to the bottom (see above), then group by project, with idea/goal/next tags first
 #report.project.sort=end-,status+/,start+,project+/,tags-,urgency-
-report.project.sort=project+/,end-,status+/,start+,tags-,urgency-
-report.project.columns=id,start.age,impact,workload,priority,joy,project,wait.relative,due.relative,depends,description,urgency,end
+report.project.sort=project+/,end-,status+/,start+,due+,tags-,urgency-
+report.project.columns=id,start.age,impact,workload,priority,joy,project,wait.relative,scheduled.relative,due,depends,description,urgency,end
 #,scheduled.relative
-report.project.labels=ID,Active,I,W,P,J,Project,Wait,Due,Deps,Description,Urg,Done
+report.project.labels=ID,Active,I,W,P,J,Project,Wait,Sched,Due,Deps,Description,Urg,Done
+
+# TODO goals and ideas should be the same report (same order etc)
+report.longterm.description=Long-term planning and ideas
+report.longterm.sort=end-,goal,wait-,scheduled-,start,entry-
+report.longterm.columns=id,wait,scheduled,start.age,priority,impact,workload,joy,description,project,entry,end
+report.longterm.labels=ID,Wait,Sched,Since,P,I,W,J,Description,Project,Added,Completed
+report.longterm.dateformat=B Y
+# ideas = :longterm +idea -goal (ideas that i haven't committed to yet)
+# J = allideas = :longterm +idea
+# goals = :longterm +goal (can be an idea but not necessarily)
 
 report.ideas.description=All ideas
 report.ideas.filter=+idea
-report.ideas.sort=end-,wait-,start,entry-
-report.ideas.columns=id,start.age,priority,impact,workload,joy,project,description,entry,end
-report.ideas.labels=ID,Active,P,I,W,J,Project,Description,Added,Until
+report.ideas.sort=end-,status,entry-
+#report.ideas.sort=end-,goal,wait-,scheduled-,start,entry-
+report.ideas.columns=id,scheduled,start.age,priority,impact,workload,joy,tags.indicator,description.count,project,entry,end
+report.ideas.labels=ID,Sched,Since,P,I,W,J,T,Description,Project,Added,Completed
 
 report.goals.description=Long term goals
 # filter by the goal tag, actually displayed is the goal uda!
@@ -186,4 +204,6 @@ color.scheduled=
 weekstart=monday
 bulk=8
 dateformat=d.m.
+#default.command=next
 #dateformat.report=Y-M-D H:N
+verbose=blank,header,footnote,label,new-uuid,affected,edit,special,project,sync,unwait,override,recur
